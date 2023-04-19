@@ -1,0 +1,9 @@
+#!/bin/zsh
+
+# Usage: ./inspect matrix T W r m
+# See `init.jl` for details on arguments.
+
+PROJDIR="$HOME/HPCJobs/RealWindowedPulse"       # PRE-COMPILED JULIA PROJECT DIRECTORY
+JULIASCRIPT="${PROJDIR}/init.jl"
+
+julia --project="${PROJDIR}" "${JULIASCRIPT}" "$@"

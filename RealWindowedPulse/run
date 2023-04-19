@@ -1,0 +1,12 @@
+#!/bin/zsh
+
+# Usage: ./run matrix T W r m
+# See `init.jl` for details on arguments.
+
+PROJDIR="$HOME/HPCJobs/RealWindowedPulse"       # PRE-COMPILED JULIA PROJECT DIRECTORY
+JULIASCRIPT="${PROJDIR}/init.jl"
+STARTSCRIPT="${PROJDIR}/start"
+
+JOBDIR=$(julia --project="${PROJDIR}" "${JULIASCRIPT}" "$@")
+                                        # CREATES STANDARDIZED DIRECTORY FOR GIVEN ARGS
+$STARTSCRIPT $JOBDIR --from-scratch     # DISPATCHES OPTIMIZATION JOB TO SLURM
