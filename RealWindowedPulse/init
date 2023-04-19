@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 # Usage: ./inspect matrix T W r m
 # See `init.jl` for details on arguments.

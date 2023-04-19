@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 # Usage: ./inspect jobdir
 # See `inspect.jl` for details on arguments.

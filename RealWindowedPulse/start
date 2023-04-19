@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 # Usage: start jobdir [--from={init,x}]
 
