@@ -1,0 +1,147 @@
+Iter     Function value   Gradient norm 
+     0    -2.124260e+00     3.372681e-02
+ * time: 0.021430015563964844
+    Energy Error: 0.056056875350926294
+
+     1    -2.128429e+00     3.388795e-02
+ * time: 305.68562602996826
+     2    -2.130444e+00     4.582104e-02
+ * time: 458.87213110923767
+     3    -2.131074e+00     1.328903e-02
+ * time: 615.3608541488647
+     4    -2.131720e+00     6.470122e-03
+ * time: 772.3087120056152
+     5    -2.131954e+00     7.191095e-02
+ * time: 930.0234889984131
+     6    -2.132250e+00     4.152325e-03
+ * time: 1087.9371831417084
+     7    -2.132382e+00     1.816942e-02
+ * time: 1246.6506161689758
+     8    -2.132559e+00     1.997845e-02
+ * time: 1403.5550789833069
+     9    -2.132815e+00     3.492729e-02
+ * time: 1560.6074681282043
+    10    -2.133095e+00     5.465989e-02
+ * time: 1717.8108251094818
+    11    -2.133378e+00     2.828500e-02
+ * time: 1874.64719414711
+    12    -2.133525e+00     1.057231e-02
+ * time: 2031.688975095749
+    13    -2.133664e+00     8.937310e-03
+ * time: 2188.4847180843353
+    14    -2.133917e+00     4.647432e-02
+ * time: 2345.547492980957
+    15    -2.134228e+00     1.759055e-02
+ * time: 2504.0455980300903
+    16    -2.134699e+00     4.758792e-02
+ * time: 2661.1075541973114
+    17    -2.135146e+00     2.235011e-01
+ * time: 2818.043538093567
+    18    -2.135739e+00     2.751641e-01
+ * time: 2976.6251311302185
+    19    -2.136067e+00     4.909145e-02
+ * time: 3133.417793035507
+    20    -2.136612e+00     7.518330e-02
+ * time: 3290.2600750923157
+
+signal (15): Terminated
+in expression starting at /home/kmsherbert/HPCJobs/RealWindowedPulse/start.jl:29
+madvise at /lib64/libc.so.6 (unknown line)
+jl_gc_free_page at /buildworker/worker/package_linux64/build/src/gc-pages.c:306
+sweep_page at /buildworker/worker/package_linux64/build/src/gc.c:1293 [inlined]
+sweep_pool_page at /buildworker/worker/package_linux64/build/src/gc.c:1392 [inlined]
+sweep_pool_pagetable0 at /buildworker/worker/package_linux64/build/src/gc.c:1412 [inlined]
+sweep_pool_pagetable1 at /buildworker/worker/package_linux64/build/src/gc.c:1432 [inlined]
+sweep_pool_pagetable at /buildworker/worker/package_linux64/build/src/gc.c:1462 [inlined]
+gc_sweep_pool at /buildworker/worker/package_linux64/build/src/gc.c:1537
+_jl_gc_collect at /buildworker/worker/package_linux64/build/src/gc.c:3153
+jl_gc_collect at /buildworker/worker/package_linux64/build/src/gc.c:3248
+maybe_collect at /buildworker/worker/package_linux64/build/src/gc.c:882 [inlined]
+jl_gc_pool_alloc at /buildworker/worker/package_linux64/build/src/gc.c:1209
+jl_gc_alloc_ at /buildworker/worker/package_linux64/build/src/julia_internal.h:339 [inlined]
+jl_gc_alloc at /buildworker/worker/package_linux64/build/src/gc.c:3290
+jl_new_bits at /buildworker/worker/package_linux64/build/src/datatype.c:804
+jl_get_nth_field at /buildworker/worker/package_linux64/build/src/datatype.c:1423
+jl_get_nth_field_checked at /buildworker/worker/package_linux64/build/src/datatype.c:1439
+jl_f_getfield at /buildworker/worker/package_linux64/build/src/builtins.c:888
+getindex at ./tuple.jl:29 [inlined]
+iterate at ./tuple.jl:69 [inlined]
+partial at /home/kmsherbert/.julia/packages/CtrlVQE/hCAH7/src/Signals.jl:179
+unknown function (ip: 0x2aaac78ff0af)
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2247 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2429
+partial at /home/kmsherbert/.julia/packages/CtrlVQE/hCAH7/src/Signals.jl:284
+#3 at ./none:0 [inlined]
+iterate at ./generator.jl:47 [inlined]
+collect_to! at ./array.jl:782
+collect_to_with_first! at ./array.jl:760
+unknown function (ip: 0x2aaac78ff793)
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2247 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2429
+collect at ./array.jl:734
+partial at /home/kmsherbert/.julia/packages/CtrlVQE/hCAH7/src/Signals.jl:23 [inlined]
+gradient at /home/kmsherbert/.julia/packages/CtrlVQE/hCAH7/src/devices/TransmonDevices.jl:168
+GradientFunction at /home/kmsherbert/.julia/packages/CtrlVQE/hCAH7/src/costfns/ProjectedEnergy.jl:129
+unknown function (ip: 0x2aaac78db696)
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2247 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2429
+ArbitraryGradientFunction at /home/kmsherbert/.julia/packages/CtrlVQE/hCAH7/src/CostFunctions.jl:30
+unknown function (ip: 0x2aaac78d6709)
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2247 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2429
+CompositeGradientFunction at /home/kmsherbert/.julia/packages/CtrlVQE/hCAH7/src/CostFunctions.jl:76
+fg! at /home/kmsherbert/.julia/packages/NLSolversBase/kavn7/src/objective_types/abstract.jl:13
+unknown function (ip: 0x2aaac78d6647)
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2247 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2429
+value_gradient!! at /home/kmsherbert/.julia/packages/NLSolversBase/kavn7/src/interface.jl:82
+value_gradient! at /home/kmsherbert/.julia/packages/NLSolversBase/kavn7/src/interface.jl:69
+unknown function (ip: 0x2aaac78d3999)
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2247 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2429
+value_gradient! at /home/kmsherbert/.julia/packages/Optim/29per/src/Manifolds.jl:50
+ϕdϕ at /home/kmsherbert/.julia/packages/LineSearches/G1LRk/src/LineSearches.jl:35
+MoreThuente at /home/kmsherbert/.julia/packages/LineSearches/G1LRk/src/morethuente.jl:226
+MoreThuente at /home/kmsherbert/.julia/packages/LineSearches/G1LRk/src/morethuente.jl:154 [inlined]
+perform_linesearch! at /home/kmsherbert/.julia/packages/Optim/29per/src/utilities/perform_linesearch.jl:59
+update_state! at /home/kmsherbert/.julia/packages/Optim/29per/src/multivariate/solvers/first_order/l_bfgs.jl:204
+optimize at /home/kmsherbert/.julia/packages/Optim/29per/src/multivariate/optimize/optimize.jl:54
+optimize at /home/kmsherbert/.julia/packages/Optim/29per/src/multivariate/optimize/optimize.jl:36 [inlined]
+#optimize#91 at /home/kmsherbert/.julia/packages/Optim/29per/src/multivariate/optimize/interface.jl:156 [inlined]
+optimize at /home/kmsherbert/.julia/packages/Optim/29per/src/multivariate/optimize/interface.jl:154
+unknown function (ip: 0x2aaac78d5288)
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2247 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2429
+run_optimization at /home/kmsherbert/HPCJobs/RealWindowedPulse/src/RealWindowedPulse.jl:274
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2247 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2429
+jl_apply at /buildworker/worker/package_linux64/build/src/julia.h:1788 [inlined]
+do_call at /buildworker/worker/package_linux64/build/src/interpreter.c:126
+eval_value at /buildworker/worker/package_linux64/build/src/interpreter.c:215
+eval_stmt_value at /buildworker/worker/package_linux64/build/src/interpreter.c:166 [inlined]
+eval_body at /buildworker/worker/package_linux64/build/src/interpreter.c:587
+jl_interpret_toplevel_thunk at /buildworker/worker/package_linux64/build/src/interpreter.c:731
+jl_toplevel_eval_flex at /buildworker/worker/package_linux64/build/src/toplevel.c:885
+jl_toplevel_eval_flex at /buildworker/worker/package_linux64/build/src/toplevel.c:830
+jl_toplevel_eval_in at /buildworker/worker/package_linux64/build/src/toplevel.c:944
+eval at ./boot.jl:373 [inlined]
+include_string at ./loading.jl:1196
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2247 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2429
+_include at ./loading.jl:1253
+include at ./Base.jl:418
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2247 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2429
+exec_options at ./client.jl:292
+_start at ./client.jl:495
+jfptr__start_38732.clone_1 at /apps/easybuild/software/tinkercliffs-rome/Julia/1.7.2-linux-x86_64/lib/julia/sys.so (unknown line)
+_jl_invoke at /buildworker/worker/package_linux64/build/src/gf.c:2247 [inlined]
+jl_apply_generic at /buildworker/worker/package_linux64/build/src/gf.c:2429
+jl_apply at /buildworker/worker/package_linux64/build/src/julia.h:1788 [inlined]
+true_main at /buildworker/worker/package_linux64/build/src/jlapi.c:559
+jl_repl_entrypoint at /buildworker/worker/package_linux64/build/src/jlapi.c:701
+main at julia (unknown line)
+__libc_start_main at /lib64/libc.so.6 (unknown line)
+unknown function (ip: 0x400808)
+unknown function (ip: (nil))
+Allocations: 35163895453 (Pool: 35159716633; Big: 4178820); GC: 18500
