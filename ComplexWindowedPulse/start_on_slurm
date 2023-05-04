@@ -1,0 +1,65 @@
+#!/bin/bash
+
+##SBATCH --job-name rsqwin
+#SBATCH --time 01:00:00
+#SBATCH --account=nmayhall_group
+##SBATCH --account=personal
+##SBATCH --account=nmayhall_group-paid
+#SBATCH --nodes=1
+#SBATCH --partition normal_q
+#SBATCH --cpus-per-task=1
+#SBATCH --exclusive
+
+if [ ! -z $SLURM_JOB_ID ]
+then
+    WALLTIME=$(squeue -h -j $SLURM_JOB_ID -o "%l")  # GIVES WALLTIME IN hh::mm:ss FORMAT
+
+    # LOAD MODULES
+    sleep 10                                        # GIVE TINKERCLIFFS A MOMENT TO WAKE UP
+    module reset                                    # Not sure this is necessary..?
+    module load Julia/1.7.2-linux-x86_64            # LOAD JULIA
+
+else    # USE A MOCK JOB ID AND WALLTIME
+    echo "Mocking a slurm job"
+
+    SLURM_JOB_ID="mock-0000000"
+    TMPDIR="/tmp"
+    WALLTIME="00:15:00"
+
+    # MOCK A COMMAND ONLY AVILABLE ON LINUX
+    timeout () {    # timeout consumes one argument and executes the rest.
+        "${@:2}"    # Here I just execute the rest.
+    }
+
+    # MOCK AN OUTPUT FILE SLURM AUTO-GENERATES
+    touch "slurm-${SLURM_JOB_ID}.out"
+fi
+
+# PREPARE PATHS
+PROJDIR="$HOME/HPCJobs/ComplexWindowedPulse"       # PRE-COMPILED JULIA PROJECT DIRECTORY
+DATADIR=$(pwd)                                  # MASTER DIRECTORY WHERE WE SAVE ALL JOBS
+JOBDIR=$1                                       # SUB-DIRECTORY TO STORE THIS JOB
+OUTFILE="${JOBDIR}/${SLURM_JOB_ID}.out"         # STANDARD OUTPUT FOR THE SCRIPT
+
+# SET UP SHOP IN SCRATCH DIRECTORY
+cp -R $JOBDIR $TMPDIR                           # TRANSFER FILES TO SCRATCH SPACE
+cd $TMPDIR                                      # MOVE INTO THE NEW PLACE
+
+# ASK A DAEMON TO UPDATE HOME DIRECTORY EVERY 5 MINUTES
+while true; do rsync -a $JOBDIR $DATADIR; sleep 300; done &
+
+# RUN JOB - Force-stop it one minute early to guarantee we have time to clean up.
+SECONDS=$(echo $WALLTIME | awk -F: '{ print ($1 * 3600) + ($2 * 60) + $3 }')
+                                                # CONVERTS WALLTIME TO SECONDS
+
+timeout $(($SECONDS-60)) julia --project="${PROJDIR}" "${PROJDIR}/start.jl" "$@" >& $OUTFILE
+                                                # RUNS THE JULIA SCRIPT
+# CLEAN UP
+rsync -a $JOBDIR $DATADIR                       # TRANSFER FILES TO HOME ONE LAST TIME
+rm -r $JOBDIR                                   # FREE UP SPACE ON SCRATCH
+cd $DATADIR                                     # RETURN HOME
+mv "slurm-${SLURM_JOB_ID}.out" $JOBDIR          # MOVE SLURM OUTPUT INTO JOB DIRECTORY
+
+kill 0                                          # END COPYCAT DAEMON
+exit
+

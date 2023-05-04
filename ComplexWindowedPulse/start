@@ -2,7 +2,7 @@
 
 # Usage: start jobdir [--from={init,x}]
 
-SLURMSCRIPT="$HOME/HPCJobs/RealWindowedPulse/start_on_slurm"
+SLURMSCRIPT="$HOME/HPCJobs/ComplexWindowedPulse/start_on_slurm"
 
 JOBDIR=$1
 if [ ! -d "$JOBDIR" ]

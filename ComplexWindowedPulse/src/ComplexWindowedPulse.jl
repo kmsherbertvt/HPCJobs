@@ -1,4 +1,4 @@
-module RealWindowedPulse
+module ComplexWindowedPulse
 
     import CtrlVQE
 
@@ -171,7 +171,7 @@ module RealWindowedPulse
     end
 
     function initialize_pulse()
-        global pulse = CtrlVQE.WindowedSquarePulse(T,W)
+        global pulse = CtrlVQE.WindowedSquarePulse(ComplexF64,T,W)
     end
 
     function initialize_device()

@@ -21,11 +21,11 @@ You can't omit earlier arguments without omitting later arguments.
 shift!(array, default=nothing) = length(array) > 0 ? popfirst!(array) : default
 
 # CONSTRUCT jobdir AND ENSURE IT IS AVAILABLE
-jobdir = "RWP_"*join(ARGS, "_")
+jobdir = "CWP_"*join(ARGS, "_")
 isdir(jobdir) && error("Some data already exists! Delete or rename directory '$jobdir'")
 
 # PARSE ARGUMENTS AS SETTINGS
-import RealWindowedPulse as JOB
+import ComplexWindowedPulse as JOB
 
 matrix = shift!(ARGS)
 T = parse(Float64, shift!(ARGS))
@@ -36,7 +36,7 @@ m = shift!(ARGS, nothing)
 JOB.modify_settings(
     matrixfile="HPCJobs/matrix/$matrix.npy",
     T=T,
-    W= !isnothing(W) ? parse(Int, W) : round(Int, 5T),
+    W= !isnothing(W) ? parse(Int, W) : round(Int,10T),
     r= !isnothing(r) ? parse(Int, r) : round(Int,20T),
     m= !isnothing(m) ? parse(Int, m) : 2,
 )

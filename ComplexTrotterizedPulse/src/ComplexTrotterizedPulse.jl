@@ -1,4 +1,4 @@
-module RealWindowedPulse
+module ComplexTrotterizedPulse
 
     import CtrlVQE
 
@@ -15,18 +15,17 @@ module RealWindowedPulse
     const DEFAULTS = Dict{Symbol,Any}(
         :matrixfile => "HPCJobs/matrix/H2_sto-3g_singlet_1.5_P-m.npy",
         :T => 10.0, # ns
-        :W => 50,
         :r => 200,
         :m => 3,
 
         :seed => 9999,
         :init_Ω => 0.0,
-        :init_Δ => 0.0,
+        :init_Δ => 0.0, # GHz
         # :init_Δ => 2π * 1.0, # GHz
 
         :ΩMAX => 2π * 0.02, # GHz
         :λΩ => 1.0,
-        :σΩ => 2π * 0.01, # GHz
+        :σΩ => 2π * 0.0002, # GHz
 
         :ΔMAX => 2π * 1.00, # GHz
         :λΔ => 1.0,
@@ -34,8 +33,8 @@ module RealWindowedPulse
 
         :f_tol => 0,
         :g_tol => 1e-6,
-        :maxiter => 5000,
-        :updateiter => 100,
+        :maxiter => 100,
+        :updateiter => 25,
         :fnRATIO => 3,
 
         :fFACTOR => 0.01,
@@ -171,7 +170,7 @@ module RealWindowedPulse
     end
 
     function initialize_pulse()
-        global pulse = CtrlVQE.WindowedSquarePulse(T,W)
+        global pulse = CtrlVQE.FullyTrotterizedSignal(ComplexF64,T,r)
     end
 
     function initialize_device()
