@@ -6,7 +6,7 @@
 
 if command -v sbatch &> /dev/null
 then
-    sbatch --job-name "${JOBDIR}" slurm_start "$@"
+    sbatch --job-name "$1" slurm_start "$@"
 else
     echo "Mocking a slurm job"
     export TMPDIR="/tmp"
