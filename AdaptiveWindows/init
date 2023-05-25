@@ -10,7 +10,7 @@ SCRIPT="
     matrix = ARGS[2];
     T = parse($MODULE.Float, ARGS[3]);
 
-    _!.setup = $MODULE.SetupVariables(T=T);
+    _!.setup = $MODULE.SetupVariables(matrix=matrix, T=T);
     _!.outdir = \"\$(job)_\$(matrix)_\$(T)\";
 
     save();

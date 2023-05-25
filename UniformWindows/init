@@ -11,7 +11,7 @@ SCRIPT="
     T = parse($MODULE.Float, ARGS[3]);
     W = parse(Int, ARGS[4]);
 
-    _!.setup = $MODULE.SetupVariables(T=T, W=W);
+    _!.setup = $MODULE.SetupVariables(matrix=matrix, T=T, W=W);
     _!.outdir = \"\$(job)_\$(matrix)_\$(T)_\$(W)\";
 
     save();
