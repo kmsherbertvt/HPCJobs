@@ -5,8 +5,8 @@ using UniformWindows
 
 matrix = shift!(ARGS, "lih30")
 T = parse(Float64, shift!(ARGS, "30.0"))
-WMIN = parse(Int, shift!(ARGS, "1"))
 WMAX = parse(Int, shift!(ARGS, "6"))
+WMIN = parse(Int, shift!(ARGS, "1"))
 
 for W in WMIN:WMAX
     _!.setup = UniformWindows.SetupVariables(T=T, W=W)

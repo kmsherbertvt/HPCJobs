@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Usage: start jobdir [--from={init,x}]
+
+SLURMSCRIPT="$HOME/HPCJobs/AdaptiveComplexPulse/start_on_slurm"
+
+JOBDIR=$1
+if [ ! -d "$JOBDIR" ]
+then
+    echo "$JOBDIR/ must exist. Consider running 'julia init.jl ...'"
+    exit 1
+fi
+
+if command -v sbatch &> /dev/null
+then
+    sbatch --job-name "${JOBDIR}" "${SLURMSCRIPT}" "$@"
+else
+    ${SLURMSCRIPT} "$@" &
+fi
