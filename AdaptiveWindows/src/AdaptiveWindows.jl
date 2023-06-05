@@ -255,7 +255,7 @@ module AdaptiveWindows
     end
 
     function unarchive(name)
-        _!.state = deserialize("$(_!.outdir)/$name")
+        _!.state = deserialize_dict("$(_!.outdir)/$name", StateVariables)
     end
 
 
