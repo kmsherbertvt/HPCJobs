@@ -19,7 +19,7 @@ SCRIPT="
     end;
 "
 
-# julia --project=. -e "$SCRIPT" $SEED
+julia --project=. -e "$SCRIPT" $SEED
 
 for SEED in $(seq $MINSEED $MAXSEED)
 do

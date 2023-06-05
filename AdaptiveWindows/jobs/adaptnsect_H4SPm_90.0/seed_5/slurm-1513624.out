@@ -1,0 +1,5 @@
+Resetting modules to system default. Reseting $MODULEPATH back to system default. All extra directories will be removed from $MODULEPATH.
+rsync: read errors mapping "/localscratch/1513624/adaptnsect_H4SPm_90.0/seed_5/trace": No data available (61)
+rsync error: some files/attrs were not transferred (see previous errors) (code 23) at main.c(1179) [sender=3.1.2]
+rsync: read errors mapping "/localscratch/1513624/adaptnsect_H4SPm_90.0/seed_5/trace": No data available (61)
+rsync error: some files/attrs were not transferred (see previous errors) (code 23) at main.c(1179) [sender=3.1.2]
