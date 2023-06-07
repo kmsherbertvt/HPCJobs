@@ -466,6 +466,27 @@ module AdaptiveWindows
         return CtrlVQE.Signals.WindowedSignal(windows, starttimes)
     end
 
+    function increment_windows(pulse, T)
+        # CREATE THE NEW WINDOWS
+        windows = deepcopy(pulse.windows)
+        push!(windows, deepcopy(pulse.windows[end]))
+
+        # AVERAGE PARAMETERS BETWEEN EACH WINDOW
+        W = length(pulse.windows)       # ORIGINAL WINDOW COUNT
+        for i in 2:W
+            xL = CtrlVQE.Parameters.values(pulse.windows[i-1])
+            xR = CtrlVQE.Parameters.values(pulse.windows[i])
+
+            # WEIGHTED AVERAGE BETWEEN CONTRIBUTING WINDOWS
+            x = ( (xL .* (i-1)) .+ (xR .* (W-(i-1))) ) ./ W
+            CtrlVQE.Parameters.bind(windows[i], x)
+        end
+
+        # CREATE WINDOWED PULSE WITH UNIFORMLY-SPACED START TIMES
+        starttimes = range(0.0, T, length(windows)+1)[1:end-1]
+        return CtrlVQE.Signals.WindowedSignal(windows, starttimes)
+    end
+
 
 
 
