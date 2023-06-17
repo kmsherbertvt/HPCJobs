@@ -1,10 +1,10 @@
 #= Gather data to plot, then plot it. =#
 
 adaptjobs = [
-    "adapteachnode",
+    # "adapteachnode",
     # "adapteachnsect",
     # "adaptnodes",
-    "adaptnsect",
+    # "adaptnsect",
     "adaptuniform",
 ]
 
@@ -70,35 +70,33 @@ colors = Dict(
 import Plots
 yMAX = 2e0
 plot = Plots.plot(;
-    xlabel = "Parameters",
+    title = "Linear Hydrogen Chain (4 atoms, 3.0Å)",
+    xlabel = "Time Segments per Pulse",
     ylabel = "Energy Error",
     yscale = :log,
-    ylims  = [1e-16, yMAX],
+    ylims  = [1e-12, yMAX],
     yticks = 10.0 .^ (-16:2:0),
-    legend = :left,
+    legend = false,
     # size=(1000,600),    # TODO: Fix labels out-of-bounds for non-square plot sizes.
 )
-twin = Plots.twinx(plot)
-Plots.plot!(twin, legend=false, ylabel="Iterations")
+# twin = Plots.twinx(plot)
+# Plots.plot!(twin, legend=false, ylabel="Iterations")
 
 kwargs_energy  = Dict(:lw=>3, :ls=>:solid, :markershape=>:diamond)
 kwargs_iter    = Dict(:lw=>1, :ls=>:dash)
 kwargs_cumiter = Dict(:lw=>1, :ls=>:dot)
 Plots.plot!(plot, [0], [2yMAX]; label="Energy Error", color=:black, kwargs_energy...)
-Plots.plot!(plot, [0], [2yMAX]; label="Iterations", color=:black, kwargs_iter...)
-Plots.plot!(plot, [0], [2yMAX]; label="Total Iterations", color=:black, kwargs_cumiter...)
+# Plots.plot!(plot, [0], [2yMAX]; label="Iterations", color=:black, kwargs_iter...)
+# Plots.plot!(plot, [0], [2yMAX]; label="Total Iterations", color=:black, kwargs_cumiter...)
 
 for job in keys(DATA)
-    Plots.plot!(plot, DATA[job][:,1], DATA[job][:,2];
+    Plots.plot!(plot, DATA[job][:,1] ./ 6, DATA[job][:,2];
             label=labels[job], color=colors[job], kwargs_energy...)
-    Plots.plot!(twin, DATA[job][:,1], DATA[job][:,3];
-            label=labels[job], color=colors[job], kwargs_iter...)
-    Plots.plot!(twin, DATA[job][:,1], DATA[job][:,4];
-            label=labels[job], color=colors[job], kwargs_cumiter...)
+    # Plots.plot!(twin, DATA[job][:,1], DATA[job][:,3];
+    #         label=labels[job], color=colors[job], kwargs_iter...)
+    # Plots.plot!(twin, DATA[job][:,1], DATA[job][:,4];
+    #         label=labels[job], color=colors[job], kwargs_cumiter...)
 end
 
-Plots.savefig("$(matrix)_$(T).pdf")
+Plots.savefig("juliaconparameterplot.pdf")
 Plots.gui()
-
-# Plots.plot!(plot, title="$(T)ns Pulse Duration")
-# Plots.savefig("$(matrix)_$(T).png")

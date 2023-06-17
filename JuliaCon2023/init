@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Usage: ./init job matrix T W
+MODULE="JuliaCon2023"
+
+SCRIPT="
+    using $MODULE;
+
+    job = ARGS[1];
+    matrix = ARGS[2];
+    T = parse($MODULE.Float, ARGS[3]);
+    W = parse(Int, ARGS[4]);
+
+    _!.setup = $MODULE.SetupVariables(matrix=matrix, T=T, W=W);
+    _!.outdir = \"\$(job)_\$(matrix)_\$(T)_\$(W)\";
+
+    save();
+    println(_!.outdir);
+"
+
+JOBDIR=$(julia --project=. -e "$SCRIPT" "$@")
+cp "$1.jl" "$JOBDIR/script.jl"
+
+echo $JOBDIR

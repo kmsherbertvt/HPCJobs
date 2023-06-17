@@ -1,9 +1,10 @@
 #= Gather data to plot, then plot it. =#
 
-adaptjob = "adaptnodes"
-W̄ = 1:6
+adaptjob = "adapteachnode"
 
 matrix = "lih30"
+TMAX = 50.0
+xMAX = 120
 
 #= GET EXACT ENERGY =#
 import NPZ: npzread
@@ -23,6 +24,7 @@ prefix = "$(adaptjob)_$(matrix)_"
 for path in readdir(dir)
     !startswith(path, prefix) && continue
     T = parse(Float64, path[length(prefix)+1:end])
+    T > TMAX && continue
 
     trace = deserialize("$dir/$path/trace")
 
@@ -41,29 +43,14 @@ for path in readdir(dir)
 
     DATA[T] = data
 end
-TMAX = maximum(keys(DATA))
-
-# # Uniform
-# prefix = "../UniformWindows/jobs/$(matrix)_$(T)_"
-# DATA["uniform"] = zeros(length(W̄), 4)
-# for i in axes(DATA["uniform"],1)
-#     path = "$prefix$(W̄[i])"
-#     trace = deserialize("$path/trace")
-#     state = deserialize("$path/final")
-
-#     DATA["uniform"][i,1] = length(state[:x])
-#     DATA["uniform"][i,2] = last(trace[:fn_energy]) - FCI
-#     DATA["uniform"][i,3] = last(trace[:iterations])
-# end
-# DATA["uniform"][:,4] .= cumsum(DATA["uniform"][:,3])
 
 #= PLOT DATA =#
-# data = [uniform, nodes, nsect]
 
 
 import Plots
-colors = cgrad(:rainbow)
+colors = Plots.cgrad(:rainbow)
 
+# xMAX = max((maximum(DATA[T][:,1]) for T in keys(DATA))...)
 yMAX = 2e0
 plot = Plots.plot(;
     xlabel = "Parameters",
@@ -71,6 +58,7 @@ plot = Plots.plot(;
     yscale = :log,
     ylims  = [1e-16, yMAX],
     yticks = 10.0 .^ (-16:2:0),
+    xlims = [0, xMAX],
     legend = :left,
     # size=(1000,600),    # TODO: Fix labels out-of-bounds for non-square plot sizes.
 )
