@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Usage: ./start jobdir
+
+# This script just delegates to sbatch, or mocks sbatch if the command doesn't exist.
+
+if command -v sbatch &> /dev/null
+then
+    sbatch --job-name "$1" slurm_start "$@"
+else
+    echo "Mocking a slurm job"
+    export TMPDIR="/tmp"
+
+    # TODO: mock SLURM_JOB_ID, squeue, and timeout here too, so the slurm script needn't.
+
+    ./slurm_start "$@" &
+fi

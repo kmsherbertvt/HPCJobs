@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Usage: ./init job matrix T
+MODULE="StrictAdaptiveWindows"
+
+SCRIPT="
+    using $MODULE;
+
+    job = ARGS[1];
+    code = ARGS[2];
+    T = parse($MODULE.Float, ARGS[3]);
+
+    _!.setup = $MODULE.SetupVariables(systemcode=code, T=T);
+    _!.outdir = \"\$(job)_\$(code)_\$(T)\";
+
+    save();
+    println(_!.outdir);
+"
+
+JOBDIR=$(julia --project=. -e "$SCRIPT" "$@")
+cp "$1.jl" "$JOBDIR/script.jl"
+
+echo $JOBDIR
