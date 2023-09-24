@@ -158,7 +158,7 @@ function bounds()
             μR[_!.state.φ] .= Inf
     μL[_!.state.ν] .= xi[_!.state.ν] .- _!.setup.ΔMAX;
             μR[_!.state.ν] .= xi[_!.state.ν] .+ _!.setup.ΔMAX
-    return zip(μL, μR)
+    return collect(zip(μL, μR))
 end
 
 options = Dict(
