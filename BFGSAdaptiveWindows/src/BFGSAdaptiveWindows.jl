@@ -163,18 +163,18 @@ module BFGSAdaptiveWindows
 
         nrecords = length(_!.trace.iterations)
         notepad *= @sprintf(
-            "\n%6s %6s %6s %13s %13s %13s %13s %13s\n",
-            "Iter", "# f", "# ∇f", "f(x)", "E(x)", "∇f(x)", "∇E(x)", "∇λ(x)",
+            "\n%6s %6s %6s %13s %13s %13s %13s %13s %13s\n",
+            "Iter", "# f", "# ∇f", "f(x)", "∇f(x)", "E(x)", "∇E(x)", "∇E(x)", "∇λ(x)",
         )
 
         nshow = min(5, nrecords)            # WE'LL SHOW ONLY THE LAST 5 RECORDS
         if nrecords > nshow                 # DEPICT THE REST WITH ELLIPSES. ^_^
-            notepad *= @sprintf("%6s %6s %6s %13s %13s %13s %13s %13s\n", "⋮"^8...)
+            notepad *= @sprintf("%6s %6s %6s %13s %13s %13s %13s %13s %13s\n", "⋮"^9...)
         end
 
         for i in 1+nrecords-nshow:nrecords
             notepad *= @sprintf(
-                "%6i %6i %6i %13G %13G %13G %13G %13G\n",
+                "%6i %6i %6i %13G %13G %13G %13G %13G %13G\n",
                 _!.trace.iterations[i],
                 _!.trace.f_calls[i],
                 _!.trace.g_calls[i],
@@ -182,7 +182,7 @@ module BFGSAdaptiveWindows
                 _!.trace.fn[i],
                 _!.trace.gd[i],
                 _!.trace.energyfn[i],
-                _!.trace.boundsgd[i],
+                _!.trace.energygd[i],
                 _!.trace.boundsfn[i],
                 _!.trace.boundsgd[i],
             )
