@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Usage: ./init job matrix T
+MODULE="BFGSUniformWindows"
+
+SCRIPT="
+    using $MODULE;
+
+    job = ARGS[1];
+    code = ARGS[2];
+    T = parse($MODULE.Float, ARGS[3]);
+    W = length(ARGS) > 3 ? parse(Int, ARGS[4]) : round(Int, T ÷ _!.setup.ΔsMIN)
+
+    _!.setup = $MODULE.SetupVariables(systemcode=code, T=T, W=W);
+    _!.outdir = \"\$(job)_\$(code)_\$(T)_\$(W)\";
+
+    save();
+    println(_!.outdir);
+"
+
+JOBDIR=$(julia --project=. -e "$SCRIPT" "$@")
+cp "$1.jl" "$JOBDIR/script.jl"
+
+echo $JOBDIR
