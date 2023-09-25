@@ -49,7 +49,7 @@ module BFGSAdaptiveWindows
         f_tol::Float = 0.0
         g_tol::Float = 1e-6
         maxiter::Int = 10000
-        fnRATIO::Float = 3.0                # NEVER EXCEED RATIO FN CALLS / ITERATIONS
+        fnRATIO::Float = 10.0               # NEVER EXCEED RATIO FN CALLS / ITERATIONS
 
         # ADAPTATION TERMINATION
         ΔgMIN::Float = 2g_tol
