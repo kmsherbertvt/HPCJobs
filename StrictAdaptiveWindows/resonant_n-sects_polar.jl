@@ -21,11 +21,7 @@ import SciPy
 #= INITIALIZE SETUP VARIABLES =#
 
 # LOAD THE MOLECULAR SYSTEM (INCLUDING H, REFERENCE STATE, EXACT GROUNDSTATE)
-system = JOB.MolecularSystems.load_system(
-    _!.setup.systemcode,
-    "$(ENV["HOME"])/HPCJobs/matrix",
-    "$(ENV["HOME"])/HPCJobs/StrictAdaptiveWindows/sys",
-)
+system = JOB.MolecularSystems.load_system(_!.setup.systemcode)
 
 # PREP EVOLUTION ALGORITHM
 evolution = CtrlVQE.Toggle(_!.setup.r)

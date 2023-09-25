@@ -35,6 +35,9 @@ module StrictAdaptiveWindows
         fld => getfield(obj, fld) for fld in fieldnames(typeof(obj))
     )
 
+    const MATRIXPATH = "$(ENV["HOME"])/HPCJobs/matrix"
+    const SYSTEMPATH = "$(ENV["HOME"])/HPCJobs/StrictAdaptiveWindows/sys"
+
     module MolecularSystems; include("systems.jl"); end
     import .MolecularSystems: MolecularSystem
 
@@ -164,20 +167,24 @@ module StrictAdaptiveWindows
              Parameters: $(length(_!.state.x))
         """
 
+        notepad *= """
+
+            Trace
+            ----------------
+        """
         nrecords = length(_!.trace.iterations)
         notepad *= @sprintf(
-            "\n%6s %6s %6s %13s %13s %13s %13s %13s\n",
-            "Iter", "# f", "# ∇f", "f(x)", "E(x)", "∇f(x)", "∇E(x)", "∇λ(x)",
+            "\n%6s %6s %6s %13s %13s\n",
+            "Iter", "# f", "# ∇f", "f(x)", "∇f(x)",
         )
 
         nshow = min(5, nrecords)            # WE'LL SHOW ONLY THE LAST 5 RECORDS
         if nrecords > nshow                 # DEPICT THE REST WITH ELLIPSES. ^_^
-            notepad *= @sprintf("%6s %6s %6s %13s %13s %13s %13s %13s\n", "⋮"^8...)
+            notepad *= @sprintf("%6s %6s %6s %13s %13s\n", "⋮"^5...)
         end
-
         for i in 1+nrecords-nshow:nrecords
             notepad *= @sprintf(
-                "%6i %6i %6i %13G %13G %13G %13G %13G\n",
+                "%6i %6i %6i %13G %13G\n",
                 _!.trace.iterations[i],
                 _!.trace.f_calls[i],
                 _!.trace.g_calls[i],
@@ -185,6 +192,26 @@ module StrictAdaptiveWindows
                 _!.trace.fn[i],
                 _!.trace.gd[i],
             )
+        end
+
+        sysfile = "$SYSTEMPATH/$(_!.setup.systemcode)"
+        if isfile(sysfile)
+            system = MolecularSystems.load_system(_!.setup.systemcode)
+            COR = system.REF - system.FCI
+            GAP = system.FES - system.FCI
+            Ex = last(_!.trace.fn)                      # LOSS FUNCTION
+            εE = Ex - system.FCI                        # ENERGY ERROR
+            cE = 1 - εE/COR                             # CORRELATION ENERGY RECOVERED
+            gE = 1 - εE/GAP                             # "GAP" ENERGY RECOVERED
+            notepad *= """
+
+                Accuracy
+                ----------------
+                  Energy (Ha): $Ex
+                 Energy Error: $εE
+                % Corr Energy: $(cE*100)
+                %  Gap Energy: $(gE*100)
+            """
         end
 
         println(notepad)
@@ -197,18 +224,23 @@ module StrictAdaptiveWindows
 
         notepad = "\n"
         if length(_!.trace.iterations) > 0
-            E0 = last(_!.trace.fn)                              # LOSS FUNCTION
-            εE = E0 - _!.work.system.FCI                        # ENERGY ERROR
-            cE = 1-εE/(_!.work.system.REF-_!.work.system.FCI)   # CORRELATION ENERGY
+            system = _!.work.system
+            COR = system.REF - system.FCI
+            GAP = system.FES - system.FCI
+            Ex = last(_!.trace.fn)                      # LOSS FUNCTION
+            εE = Ex - system.FCI                        # ENERGY ERROR
+            cE = 1 - εE/COR                             # CORRELATION ENERGY RECOVERED
+            gE = 1 - εE/GAP                             # "GAP" ENERGY RECOVERED
             g0 = last(_!.trace.gd)                              # GRADIENT NORM
 
             notepad *= """
 
                 Optimization Results
                 --------------------
-                       Energy: $E0
+                  Energy (Ha): $Ex
                  Energy Error: $εE
                 % Corr Energy: $(cE*100)
+                %  Gap Energy: $(gE*100)
                 Gradient Norm: $g0
             """
         end
@@ -403,13 +435,6 @@ module StrictAdaptiveWindows
         end
     end
 
-    """ TODO: Add a method to give...
-                ...index of where to find the old parameter vector,
-                    for each index of the new parameter vector,
-                    after inserting a split time s in the given pulse index.
-            The adaptive BFGS will need to call this method BEFORE replacing the pulse with results from below.
-    """
-
     """ Duplicate a windowed signal exactly but include an extra split at s. """
     function adapt_windows(pulse, s)
         # IDENTIFY THE WINDOW WHERE s CURRENTLY FALLS
@@ -460,6 +485,6 @@ module StrictAdaptiveWindows
         trace && Plotting.plot_trace(; saveas="$(label)_trace")
     end
 
-end # module AdaptiveWindows_v2
+end # module StrictAdaptiveWindows
 
 

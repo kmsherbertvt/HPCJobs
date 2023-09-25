@@ -1,4 +1,4 @@
-#= TODO:
+#=
 
 Call me crazy but I don't think we should try to standardize the process.
 For Ayush's matrices, there is no way I'm getting N and S matrices,
@@ -16,6 +16,10 @@ So let us let this file simply implement the key parts of the system:
 It may be worthwhile folding this struct into the main module but
     the process for building each one probably isn't, so let's leave it here for now.
 
+NOTE: farsight...for systems with a degenerate ground state,
+    we *pry* want FES to give the first *non-degenerate* energy.
+But that might not always be well-defined.
+
 =#
 
 import CtrlVQE
@@ -25,24 +29,29 @@ using LinearAlgebra: eigen, Hermitian, diag
 using Parameters: @with_kw
 using NPZ: npzread
 
+import ..MATRIXPATH, ..SYSTEMPATH
+
 import ..as_dict
 
-function load_system(code::String, matrixpath::String, syspath::String)
-    sysfile = "$syspath/$code"
+function load_system(
+    code::String;
+    matrixpath=MATRIXPATH, systempath=SYSTEMPATH,
+)
+    systemfile = "$systempath/$code"
     # LOAD SYSTEM IF POSSIBLE
-    if isfile(sysfile)
-        system = MolecularSystem(; deserialize(sysfile)...)
+    if isfile(systemfile)
+        system = MolecularSystem(; deserialize(systemfile)...)
     # OTHERWISE, CREATE IT AND THEN SAVE IT
     else
-        system = make_system(code, matrixpath)
-        serialize(sysfile, as_dict(system))
+        system = make_system(code; matrixpath=matrixpath)
+        serialize(systemfile, as_dict(system))
     end
     return system
 end
 
 
 const Hchain_pattern = r"^(c?H)(\d+)(.)(P|J|B)(m|n)?$"
-function make_system(code::String, matrixpath::String)
+function make_system(code::String; matrixpath=matrixpath=MATRIXPATH)
     # TEST H chain PATTERN
     matched = match(Hchain_pattern, code)
     if !isnothing(matched)
