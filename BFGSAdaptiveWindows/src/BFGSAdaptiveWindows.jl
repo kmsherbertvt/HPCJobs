@@ -449,19 +449,6 @@ module BFGSAdaptiveWindows
         return CtrlVQE.WindowedSignal(windows, starttimes)
     end
 
-    """ Duplicate a windowed signal exactly but include an extra split at s. """
-    function adapt_windows(pulse, s)
-        # IDENTIFY THE WINDOW WHERE s CURRENTLY FALLS
-        k = findlast(s0 -> s0 < s, pulse.starttimes)
-        isnothing(k) && error("`s` does not fall in any window.")
-        window = deepcopy(pulse.windows[k]) # DUPLICATE PARAMETERS SO Ω(t) IS UNCHANGED
-
-        # CREATE THE NEW PULSE
-        windows = deepcopy(pulse.windows);          insert!(windows, k+1, window)
-        starttimes = deepcopy(pulse.starttimes);    insert!(starttimes, k+1, s)
-        return CtrlVQE.WindowedSignal(windows, starttimes)
-    end
-
     """ Duplicate a uniform pulse as closely as possible with one more window. """
     function increment_windows(pulse, T)
         # CREATE THE NEW WINDOWS
