@@ -24,3 +24,9 @@ The presence of an m after the mapping indicates whether a two-qubit tapering wa
 - cH4: 1.25Å
 - cH6: 1.00Å
 - cH8: 1.05Å
+
+## Special Matrices
+- "lih30": LiH with a bond separation of 3.0Å.
+    Frozen core and Qiskit parity mapping with 2-qubit tapering. Total of 4 qubits.
+- "H215": H2 with a bond separation of 1.5Å.
+    OpenFermion parity mapping with 2-qubit tapering. Total of 4 qubits.
