@@ -1,17 +1,17 @@
 #= resonant_uniform
 
 Resonant: Fix pulse frequencies on resonance.
-n-sects: Split a single window into a rational division at each adaption.
 Complex: Use complex pulses with inscribed amplitude bound.
+Smooth: Use smooth bounds for amplitude and drive frequency.
 
 =#
 
-import StrictAdaptiveWindows as JOB
-import StrictAdaptiveWindows: _!
+import StrictUniformWindows as JOB
+import StrictUniformWindows: _!
 
 import CtrlVQE
 
-import LinearAlgebra: eigen, Hermitian, norm
+import LinearAlgebra: eigen, Hermitian, norm, diagm
 
 using Serialization: serialize, deserialize
 using NPZ: npzread
@@ -27,11 +27,11 @@ system = JOB.MolecularSystems.load_system(_!.setup.systemcode)
 evolution = CtrlVQE.Toggle(_!.setup.r)
 
 # PREP DEVICE - THE PULSE IS A PLACEHOLDER UNTIL CURRENT STATE IS LOADED
-protopulse = CtrlVQE.ComplexConstant(zero(JOB.Float), zero(JOB.Float))
+protopulse = CtrlVQE.ComplexConstant(zero(JOB.Float), zero(JOB.Float))  # COMPLEX
 device = CtrlVQE.Systematic(
     CtrlVQE.FixedFrequencyTransmonDevice,
     system.n,
-    CtrlVQE.UniformWindowed(protopulse, _!.setup.T, 1);
+    CtrlVQE.UniformWindowed(protopulse, _!.setup.T, _!.setup.W);
     m = _!.setup.m,
 )
 
@@ -128,11 +128,12 @@ function callback(x)
     JOB.save()
     if iteration[] % _!.opt.update == 0
         JOB.report()
+        JOB.archive(JOB.iterid(iteration[]))
         JOB.plot(; label="", trajectory=false, pulses=false, trace=true)
     end
 
     # CHECK FOR SPECIAL TERMINATION CONDITIONS
-    iteration[] > 10 && cnt_f[] > _!.setup.fnRATIO * iteration[] && (
+    iteration[] > 10 && cnt_f[] > _!.opt.fnRATIO * iteration[] && (
         println("Linesearch excessively difficult");
         return true;
     )
@@ -160,9 +161,9 @@ end
 
 options = Dict(
     :iprint => 1,
-    :ftol => _!.setup.f_tol,        # TOLERANCE IN FUNCTION VALUE
-    :gtol => _!.setup.g_tol,        # TOLERANCE IN GRADIENT NORM
-    :maxiter => _!.setup.maxiter,   # MAXIMUM NUMBER OF ITERATIONS
+    :ftol => _!.opt.f_tol,          # TOLERANCE IN FUNCTION VALUE
+    :gtol => _!.opt.g_tol,          # TOLERANCE IN GRADIENT NORM
+    :maxiter => _!.opt.maxiter,     # MAXIMUM NUMBER OF ITERATIONS
 )
 
 function do_optimization()
@@ -181,122 +182,15 @@ function do_optimization()
 end
 
 ##########################################################################################
-#= DEFINE ADAPTATION PROTOCOL =#
-
-function do_adaptation()
-    CtrlVQE.Parameters.bind(device, _!.state.x)
-    ϕ, _, _ = JOB.calculate_gradientsignals()
-    _, τ̄, t̄ = CtrlVQE.trapezoidaltimegrid(_!.setup.T, _!.setup.r)
-
-    # CALCULATE OPTIMAL SWITCHING TIMES FOR EACH PULSE
-    ΔgBEST = zeros(CtrlVQE.ndrives(device))  # TRACK LARGEST Δg FOR EACH PULSE
-    sBEST  = zeros(CtrlVQE.ndrives(device))  # TRACK s GIVING LARGEST Δg " "
-
-    maxnsect = floor(Int, _!.setup.T / _!.setup.ΔsMIN)
-    for nsect in 2:maxnsect
-        i_tosplit = findall(s -> s == 0, sBEST) # WHICH DRIVES STILL NEED A SPLIT?
-        isempty(i_tosplit) && break             # STOP ONCE ALL DRIVES HAVE A SPLIT
-
-        for j in 1:CtrlVQE.ngrades(device)
-            i = (j-1)÷2 + 1                     # IDENTIFY DRIVE
-            !(i in i_tosplit) && continue       # SKIP DRIVE SPLITTABLE WITH SMALLER nsect
-
-            pulse = device.Ω̄[i]
-            s̄ = JOB.nsect_windows(nsect, pulse.starttimes)
-            JOB.filter_splits!(s̄, pulse.starttimes)
-
-            for s in s̄
-                # CONSTRUCT TRIAL DEVICE
-                candidate = deepcopy(device)
-                candidate.Ω̄[i] = JOB.adapt_windows(device.Ω̄[i], s)
-
-                # CALCULATE CHANGE IN GRADIENT
-                g = CtrlVQE.Devices.gradient(candidate, τ̄, t̄, ϕ)
-                Δg = maximum(abs.(g))
-                Δg < _!.setup.ΔgMIN && continue     # ABANDON TRIAL IF IT IS BELOW THRESHOLD
-
-                # UPDATE OPTIMAL SWITCHING TIMES
-                if Δg > ΔgBEST[i]
-                    ΔgBEST[i] = Δg
-                    sBEST[i]  = s
-                end
-            end
-        end
-    end
-
-    # UPDATE THE DEVICE PULSES
-    adapted = false
-    # for i in 1:CtrlVQE.ndrives(device)    # TETRIS LOOP
-    for i in argmax(ΔgBEST)                 # OPTIMAL "LOOP" (only one iteration)
-        sBEST[i] == 0 && continue   # NO s GAVE SUFFICIENT IMPROVEMENT FOR THIS PULSE
-        adapted = true              # *SOME* CHANGE WAS MADE IN THIS ADAPTATION
-
-        device.Ω̄[i] = JOB.adapt_windows(device.Ω̄[i], sBEST[i])
-    end
-    !adapted && return false
-
-    # UPDATE THE STATE
-    x = CtrlVQE.Parameters.values(device)
-    L = length(x)
-    _!.state = JOB.StateVariables(
-        x=x,
-        Ω = collect(1:L), φ = [], ν = [],                   # COMPLEX RESONANT
-        s = [device.Ω̄[i].starttimes for i in 1:CtrlVQE.ndrives(device)],
-    )
-
-    # UPDATE THE TRACE
-    iter = length(_!.trace.iterations) > 0 ? last(_!.trace.iterations) : 0
-    push!(_!.trace.adaptations, iter)
-
-    return true
-end
-
-
-
-##########################################################################################
 #= RUN OPTIMIZATION =#
 
 !_!.run && error("Setup Finished")
-
-JOB.save()
-JOB.report()
 
 name = "init"
 JOB.archive(name)
 JOB.plot(; label=name, trajectory=false, trace=false)
 
-converged = false
-equilibrate_round = true
-while converged || equilibrate_round
-    # ARCHIVE OPTIMIZED STATE (skips first iteration)
-    if converged
-        JOB.save()
-        JOB.report()
-
-        global name = "optimized_$(JOB.adaptid(length(_!.trace.adaptations)))"
-        JOB.archive(name)
-        JOB.plot(; label="", trajectory=false, pulses=false, trace=true)
-        JOB.plot(; label=name, trajectory=false, trace=false)
-    end
-
-    # EXCEEDED BOUNDS OF OPTIMIZATION VARIABLES (user can just change them)
-    if length(_!.trace.adaptations) ≥ _!.opt.maxadapt
-        println("Maximum adaptations reached.")
-        break
-    end
-
-    # ADAPT ANSATZ AND CHECK FOR TERMINATION CONDITIONS (trajectory specific)
-    if !equilibrate_round && !do_adaptation()
-        println("No more useful adaptations can be found.")
-        break
-    end
-
-    # RUN OPTIMIZATION WITH CURRENT ANSATZ
-    global converged = do_optimization()
-    global equilibrate_round = false
-end
-
-!converged && println("Optimization did not converge. Run again to resume.")
+!do_optimization() && println("Optimization did not converge. Run again to resume.")
 
 JOB.save()
 JOB.report()

@@ -128,6 +128,7 @@ function callback(x)
     JOB.save()
     if iteration[] % _!.opt.update == 0
         JOB.report()
+        JOB.plot(; label="", trajectory=false, pulses=false, trace=true)
     end
 
     # CHECK FOR SPECIAL TERMINATION CONDITIONS
@@ -254,7 +255,7 @@ JOB.report()
 
 name = "init"
 JOB.archive(name)
-JOB.plot(; label=name, trace=false)
+JOB.plot(; label=name, trajectory=false, trace=false)
 
 converged = false
 equilibrate_round = true
@@ -266,8 +267,8 @@ while converged || equilibrate_round
 
         global name = "optimized_$(JOB.adaptid(length(_!.trace.adaptations)))"
         JOB.archive(name)
-        JOB.plot(; label=name, trace=false)
         JOB.plot(; label="", trajectory=false, pulses=false, trace=true)
+        JOB.plot(; label=name, trajectory=false, trace=false)
     end
 
     # EXCEEDED BOUNDS OF OPTIMIZATION VARIABLES (user can just change them)
@@ -294,5 +295,5 @@ JOB.report()
 
 name = "final"
 JOB.archive(name)
-JOB.plot(; label=name, trace=false)
 JOB.plot(; label="", trajectory=false, pulses=false, trace=true)
+JOB.plot(; label=name, trace=false) # INCLUDE TRAJECTORY
