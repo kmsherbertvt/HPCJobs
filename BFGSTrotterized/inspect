@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Usage: ./inspect jobdir1 jobdir2 ...
+MODULE="BFGSTrotterized"
+
+SCRIPT="
+    using $MODULE;
+    for dir in ARGS;
+        load(dir);
+        println(\"Job: \$dir\");
+        inspect();
+    end;
+"
+
+julia --project=. -e "$SCRIPT" "$@"

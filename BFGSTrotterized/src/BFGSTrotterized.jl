@@ -1,6 +1,4 @@
-#= Use BFGS as optimizer, and track the current inverse Hessian as part of the state. =#
-
-module BFGSAdaptiveWindows
+module BFGSTrotterized
     import Serialization: serialize, deserialize
     import Parameters: @with_kw
     import Printf: @sprintf
@@ -11,7 +9,7 @@ module BFGSAdaptiveWindows
     import CtrlVQE.TransmonDevices: resonancefrequency, drivefrequency, drivesignal
 
     export _!, unload, save, load, inspect, report, plot
-    export iterid, adaptid, archive, unarchive
+    export iterid, archive, unarchive
 
     const Float = Float64
     const as_dict(obj) = Dict(
@@ -19,7 +17,7 @@ module BFGSAdaptiveWindows
     )
 
     const MATRIXPATH = "$(ENV["HOME"])/HPCJobs/matrix"
-    const SYSTEMPATH = "$(ENV["HOME"])/HPCJobs/BFGSAdaptiveWindows/sys"
+    const SYSTEMPATH = "$(ENV["HOME"])/HPCJobs/BFGSTrotterized/sys"
 
     module MolecularSystems; include("systems.jl"); end
     import .MolecularSystems: MolecularSystem
@@ -37,28 +35,21 @@ module BFGSAdaptiveWindows
         # HARDWARE BOUNDS
         ΩMAX::Float = 2π * 0.02 # GHz       # LARGEST PULSE AMPLITUDE
         ΔMAX::Float = 2π * 1.00 # GHz       # LARGEST PULSE DETUNING
-        ΔsMIN::Float = 3.0 # ns             # SMALLEST WINDOW INTERVAL, AKIN TO BANDWIDTH
 
         # SOFTWARE BOUNDS
         λΩ::Float = 1.0 # Ha                # STRENGTH OF PENALTY TERMS
         λΔ::Float = 1.0 # Ha
         σΩ::Float = ΩMAX                    # SMOOTHNESS OF PENALTY TERMS
         σΔ::Float = ΔMAX
-
-        # OPTIMIZATION TERMINATION
-        f_tol::Float = 0.0
-        g_tol::Float = 1e-6
-        maxiter::Int = 10000
-        fnRATIO::Float = 10.0               # NEVER EXCEED RATIO FN CALLS / ITERATIONS
-
-        # ADAPTATION TERMINATION
-        ΔgMIN::Float = 2g_tol
     end
 
     """ OptimizationVariables determine termination and update settings. """
     @with_kw mutable struct OptimizationVariables
-        maxadapt::Int = 200
-        update::Int = 100
+        f_tol::Float = 0.0
+        g_tol::Float = 1e-6
+        maxiter::Int = 10000
+        fnRATIO::Float = 10.0               # NEVER EXCEED RATIO FN CALLS / ITERATIONS
+        update::Int = 500
     end
 
     """ TraceVariables store plottable data over the course of a trajectory. """
@@ -66,8 +57,6 @@ module BFGSAdaptiveWindows
         iterations::Vector{Int} = Int[]
         f_calls::Vector{Int} = Int[]
         g_calls::Vector{Int} = Int[]
-
-        adaptations::Vector{Int} = Int[]    # Stores iterations where an adaptation occurs.
 
         fn::Vector{Float} = Float[]
         gd::Vector{Float} = Float[]
@@ -157,7 +146,6 @@ module BFGSAdaptiveWindows
 
             Ansatz
             ----------------
-            Adaptations: $(length(_!.trace.adaptations))
              Parameters: $(length(_!.state.x))
         """
 
@@ -270,7 +258,6 @@ module BFGSAdaptiveWindows
 
             Ansatz
             ----------------
-            Adaptations: $(length(_!.trace.adaptations))
              Parameters: $(length(_!.state.x))
         """
 
@@ -279,10 +266,6 @@ module BFGSAdaptiveWindows
 
     function iterid(iter)
         return "$(lpad(iter, 8, "0"))"
-    end
-
-    function adaptid(adapt)
-        return "$(lpad(adapt, 6, "0"))"
     end
 
     function archive(name)
@@ -383,99 +366,6 @@ module BFGSAdaptiveWindows
 
 
 
-
-    """ Linearly interpolate roots of a series ϕ evaluated at points in t̄. """
-    function identify_nodes(t̄, ϕ)
-        s̄ = Float[]
-        isempty(ϕ) && return s̄
-
-        phase = sign(first(ϕ))          # TRACK IF WE ARE ABOVE OR BELOW ϕ=0 LINE
-        for (i, ϕi) in enumerate(ϕ)
-            sign(ϕi) == phase && continue   # SKIPS FIRST ITERATION, SO ϕ̄[i-1] IS SAFE
-
-            # LINEAR INERPOLATION TO IDENTIFY TIME OF PHASE FLIP
-            t = t̄[i]; t0 = t̄[i-1]; ϕ0 = ϕ[i-1]
-            m = abs(ϕi-ϕ0)/(t-t0)           #     SLOPE OF LINE
-            s = t0 + m*ϕ0                   # INTERCEPT OF LINE
-            push!(s̄, s)
-
-            phase = sign(ϕi)                # UPDATE WHICH SIDE OF ϕ=0 WE ARE ON
-        end
-
-        return s̄
-    end
-
-    """ Identify candidate window times by splitting existing windows into n pieces. """
-    function nsect_windows(n, s̄0)
-        Δs̄ = diff([s̄0..., _!.setup.T]) ./ n         # CANDIDATE SPLIT POINTS
-        s̄ = Matrix{Float}(undef, length(s̄0), n-1)
-        for i in 1:n-1
-            s̄[:,i] .= s̄0 .+ (i .* Δs̄)
-        end
-        return reshape(s̄, :)
-    end
-
-    """ Remove candidate window times if the resulting window is too short. """
-    function filter_splits!(s̄, s̄0)
-        cursor = 1      # TRACKS LOCATION IN s̄0
-        i = 1
-        while i ≤ length(s̄)
-            s = s̄[i]
-
-            # ADVANCE CURSOR
-            while cursor ≤ length(s̄0) && s̄0[cursor] < s; cursor += 1; end
-            sL = get(s̄0, cursor-1, 0.0)         #  LARGEST SWITCHING TIME LESS THAN s
-            sR = get(s̄0, cursor, _!.setup.T)    # SMALLEST SWITCHING TIME MORE THAN s
-
-            # REMOVE A SPLIT IF IT CREATES A WINDOW WHICH IS TOO SMALL
-            if s - sL < _!.setup.ΔsMIN || sR - s < _!.setup.ΔsMIN
-                deleteat!(s̄, i)
-            else
-                i += 1
-            end
-        end
-    end
-
-    """ Duplicate a windowed signal exactly but include an extra split at s. """
-    function adapt_windows(pulse, s)
-        # IDENTIFY THE WINDOW WHERE s CURRENTLY FALLS
-        k = findlast(s0 -> s0 < s, pulse.starttimes)
-        isnothing(k) && error("`s` does not fall in any window.")
-        window = deepcopy(pulse.windows[k]) # DUPLICATE PARAMETERS SO Ω(t) IS UNCHANGED
-
-        # CREATE THE NEW PULSE
-        windows = deepcopy(pulse.windows);          insert!(windows, k+1, window)
-        starttimes = deepcopy(pulse.starttimes);    insert!(starttimes, k+1, s)
-        return CtrlVQE.WindowedSignal(windows, starttimes)
-    end
-
-    """ Duplicate a uniform pulse as closely as possible with one more window. """
-    function increment_windows(pulse, T)
-        # CREATE THE NEW WINDOWS
-        windows = deepcopy(pulse.windows)
-        push!(windows, deepcopy(pulse.windows[end]))
-
-        # AVERAGE PARAMETERS BETWEEN EACH WINDOW
-        W = length(pulse.windows)       # ORIGINAL WINDOW COUNT
-        for i in 2:W
-            xL = CtrlVQE.Parameters.values(pulse.windows[i-1])
-            xR = CtrlVQE.Parameters.values(pulse.windows[i])
-
-            # WEIGHTED AVERAGE BETWEEN CONTRIBUTING WINDOWS
-            x = ( (xL .* (i-1)) .+ (xR .* (W-(i-1))) ) ./ W
-            CtrlVQE.Parameters.bind(windows[i], x)
-        end
-
-        # CREATE WINDOWED PULSE WITH UNIFORMLY-SPACED START TIMES
-        starttimes = range(0.0, T, length(windows)+1)[1:end-1]
-        return CtrlVQE.WindowedSignal(windows, starttimes)
-    end
-
-
-
-
-
-
     module Plotting; include("plotting.jl"); end
 
     function plot(; label="plot", trajectory=true, pulses=true, trace=true)
@@ -486,4 +376,4 @@ module BFGSAdaptiveWindows
         trace && Plotting.plot_trace(; saveas="$(label)_trace")
     end
 
-end # module BFGSAdaptiveWindows
+end # module BFGSTrotterized
