@@ -40,7 +40,7 @@ module BFGSUniformWindows
         W::Int = 3                          # NUMBER OF WINDOWS PER PULSE
 
         # SIMULATION PARAMETERS
-        r::Int = 20T                        # NUMBER OF TROTTER STEPS
+        r::Int = round(Int,20T)             # NUMBER OF TROTTER STEPS
         m::Int = 2                          # NUMBER OF LEVELS PER TRANSMON
 
         # HARDWARE BOUNDS
