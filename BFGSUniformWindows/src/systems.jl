@@ -51,7 +51,8 @@ end
 
 
 const Hchain_pattern = r"^(c?H)(\d+)(.)(P|J|B)(m|n)?$"
-function make_system(code::String; matrixpath=matrixpath=MATRIXPATH)
+const Hubbard_pattern = r"^(c?L)(\d+)(.)(.)(P|J|B)(m|n)?$"
+function make_system(code::String; matrixpath=MATRIXPATH)
     # TEST H chain PATTERN
     matched = match(Hchain_pattern, code)
     if !isnothing(matched)
@@ -67,6 +68,27 @@ function make_system(code::String; matrixpath=matrixpath=MATRIXPATH)
             N, 0,
         )
     end
+
+    # TEST Hubbard pattern
+    matched = match(Hubbard_pattern, code)
+    if !isnothing(matched)
+        cfg, num, geo, bas, map, tap = matched
+
+        isnothing(tap) && (tap = "")
+        N = parse(Int, num)
+
+        #= NOTE: I want to completely revise how matrices are organized soon,
+            and that will involve phasing out this job.
+        But for now, let's hack Hubbard in to see how it goes.
+        =#
+        return MolecularSystem(
+            "$matrixpath/$code.npy",
+            "$matrixpath/H$(num)_$(map)$(tap)_N.npy",
+            "$matrixpath/H$(num)_$(map)$(tap)_S.npy",
+            N, 0,
+        )
+    end
+
 
     return MolecularSystem("$matrixpath/$code.npy")
 end
