@@ -1,29 +1,17 @@
 # HPCJobs
 Facilitates transfering files between desktop and remote HPC resources
 
+Principles:
+- Low-resource job initialization that puts everything a job needs to run in a job folder.
+- Simple interface for starting a job, and almost-as-easy interface to do so with slurm.
+- Jobs are NOT saved to git. Transfer data files with scp.
+- Packages provide tools to _inspect_ job data _without_ any expensive calculations.
 
-The current job writing is nice in a lot of ways, but not nice in others.
+Preferrred Workflow:
+- Package defines state variables in an object, which can be archived throughout a job.
+- Package defines an easy `load` function to load any archived state as the "active" one.
+- The package defines a global variable `!_` to hold the active state.
+- Plotting and other analysis methods act directly on the active state.
 
-Good:
-- Simple command to just run with different experimental parameters.
-- Easy post-processing, and capability to restart, and modify parameters.
-
-Bad:
-- Very unreadable. Hard to find parts of code that you want to stare at.
-- Jobs don't remember non-parametric modifications, eg. line-search.
-
-Solution to the Bad is to write a proper *script*, rather than this mumbo-jumbo of methods.
-We can still use a module setup to do standard things like loading and plotting,
-    and defining the parameter framework.
-    But the actual actions should take place in a script format probably.
-The script itself gets saved within each job alongside the experimental parameters.
-
-We can use a mutable struct instead of the module to hold parameters and variables.
-On init we create parameters, and blank variables, and save script.
-On load we load parameters, and state variables, and trace variables.
-On start we run the saved script using active parameters and variables.
-
-The script can't take mutable struct as arg.
-It will need to refer to a global variable. Something like `_!`.
-`_!` lives in the job module, alongside struct definition and load/plot logic.
-Script starts with the line `import JOB: vars as _!`
+I expect this business with the `!_` variable will look very odd to any visitors,
+    but I've found it works extraordinarily well for me.
